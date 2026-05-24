@@ -1,1 +1,36 @@
-news.yml
+name: Stock News Tracker
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 20 * * 1-5'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run news script
+        env:
+          LINE_ACCESS_TOKEN: ${{ secrets.LINE_ACCESS_TOKEN }}
+          LINE_USER_ID_1: ${{ secrets.LINE_USER_ID_1 }}
+          LINE_USER_ID_2: ${{ secrets.LINE_USER_ID_2 }}
+          LINE_USER_ID_3: ${{ secrets.LINE_USER_ID_3 }}
+          LINE_USER_ID_4: ${{ secrets.LINE_USER_ID_4 }}
+          SINOPAC_API_KEY: ${{ secrets.SINOPAC_API_KEY }}
+          SINOPAC_SECRET_KEY: ${{ secrets.SINOPAC_SECRET_KEY }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
+        run: python news_tracker.py
