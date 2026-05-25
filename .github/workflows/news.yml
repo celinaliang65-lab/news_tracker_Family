@@ -29,6 +29,7 @@ jobs:
           LINE_USER_ID_2: ${{ secrets.LINE_USER_ID_2 }}
           LINE_USER_ID_3: ${{ secrets.LINE_USER_ID_3 }}
           LINE_USER_ID_4: ${{ secrets.LINE_USER_ID_4 }}
+          LINE_USER_ID_5: ${{ secrets.LINE_USER_ID_4 }}
           SINOPAC_API_KEY: ${{ secrets.SINOPAC_API_KEY }}
           SINOPAC_SECRET_KEY: ${{ secrets.SINOPAC_SECRET_KEY }}
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
