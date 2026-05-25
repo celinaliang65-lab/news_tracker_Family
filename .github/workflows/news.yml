@@ -3,7 +3,7 @@ name: Stock News Tracker
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 20 * * 1-5'
+    - cron: '0 15 * * 1-5'
 
 jobs:
   build:
