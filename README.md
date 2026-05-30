@@ -1,102 +1,144 @@
-# 觀察清單(Family) LINE 推播系統
-
-透過 GitHub Actions 定時執行，從 Google Sheets 讀取觀察清單，計算自 2026/2/26 起漲幅排行，以 LINE Flex Message 卡片推播給最多 4 位使用者。
+# Family 觀察清單系統說明 v1.0
+## 更新日期：2026/05/29
 
 ---
 
-## 系統流程
+## 一、系統概覽
+
+| 項目 | 說明 |
+|------|------|
+| 推播人數 | 最多 4 人（LINE_USER_ID_1～4，空白自動跳過） |
+| 配色 | 大地棕 × 小貓白 |
+| 推播時間 | 週一至週五 台灣時間 15:00（cron: '0 7 * * 1-5'） |
+| Google Sheet | 觀察清單（單一 Sheet tab） |
+
+---
+
+## 二、推播內容
+
+### 訊息① Flex Message 漲幅排行卡片
 
 ```
-GitHub Actions（每週一～五）
-    ↓
-Google Sheets 讀取觀察清單
-    ↓
-永豐 Shioaji / TWSE / TPEX 取得股價
-    ↓
-① Flex Message 漲幅排行卡片  →  推播給所有人
-② 個股詳細資訊（純文字）    →  推播給所有人
+┌─────────────────────────────────┐
+│ 📊 漲幅排行          2026/05/29  │ ← 大地棕 #6b6650
+│ 自 2/26 起成長幅度分析 (%)       │
+├─────────────────────────────────┤  小貓白底 #f7f4ef
+│ 📈 加權指數 44732.94             │
+│ 🔺 +1096.50（+2.51%）           │
+│ ・台股史詩巨震...                │
+│ ─────────────────────────────── │
+│ ①  +104.80%  　 2383 台光電     │
+│ ②  +70.98%   ☆ 2308 台達電     │
+│ ③  +67.54%   ★ 6196 帆宣       │
+│ ...                              │
+│ ─────────────────────────────── │
+│ 符號說明：★ 主要推薦　☆ 次要推薦 │
+│                    Family · 15:00│
+└─────────────────────────────────┘
+```
+
+### 訊息② 純文字個股詳細報告
+
+```
+📰 觀察清單（Family）
+      2026/05/29 15:00
+━━━━━━━━━━━━━
+
+2308 台達電
+  現價 : 2440.00 🔺+50.00
+  2/26: 1430.00  ↑ +70.63%
+  月營收 : 2026-04  586.9億  ↓ -1.8%MoM
+  EPS : 1Q26  7.91元
+  💰除息：2026/07/15 現金股利：3.50元
+─────────────
+  ・台達電股東會》不只看好AI！...
 ```
 
 ---
 
-## 推播內容
+## 三、Google Sheets 設定
 
-| 訊息 | 格式 | 內容 |
-|------|------|------|
-| ① 漲幅排行榜 | LINE Flex Message 深綠卡片 | 自 2/26 起漲幅排名、百分比、股票名稱 |
-| ② 個股詳細資訊 | 純文字 | 現價、日漲跌、月營收、EPS、最新新聞 |
+| 項目 | 說明 |
+|------|------|
+| SPREADSHEET_ID | 從 GitHub Secrets 讀取 |
+| Sheet tab 名稱 | 觀察清單 |
+| 格式 | 必須是 Google Sheets 原生格式（非 .xlsx）|
 
----
+### 觀察清單欄位
 
-## Google Sheets 格式
+| 欄位 | 說明 |
+|------|------|
+| 名稱 | 股票中文名稱 |
+| 交易所 | TSE 或 OTC |
+| 代號 | 股票代號 |
+| 推薦 | ★ / ☆ / 空白 |
+| 2026/2/26收盤價 | 漲幅計算基準 |
+| 產業類別 | 選填 |
+| 供應鏈 | 選填 |
 
-**SPREADSHEET_ID**：從 GitHub Secret `SPREADSHEET_ID` 讀取
-
-**Sheet 名稱**：`觀察清單`
-
-| 欄位名稱 | 範例值 | 說明 |
-|----------|--------|------|
-| `代號` | 2330 | 股票代號（空白列自動略過） |
-| `名稱` | 台積電 | 股票名稱 |
-| `交易所` | TSE | 上市填 TSE，上櫃填 OTC |
-| `2026/2/26收盤價` | 1095.00 | 計算漲跌幅的基準價格 |
-
-> Service Account 需共用：`stock-tracker-bot@stock-tracker-496215.iam.gserviceaccount.com`
-> Google Sheets → 共用 → 貼上 Email → 設定「編輯者」
+> ⚠️ Google Sheet 必須共用給 Service Account：
+> `stock-tracker-bot@stock-tracker-496215.iam.gserviceaccount.com` → 編輯者
 
 ---
 
-## GitHub Secrets 設定
+## 四、推薦符號說明
+
+| 符號 | 說明 |
+|------|------|
+| ★ | 主要推薦購買 |
+| ☆ | 次要推薦購買 |
+| 空白 | 不顯示符號，用全形空白對齊 |
+
+---
+
+## 五、GitHub Secrets 設定
 
 | Secret 名稱 | 說明 | 必/選填 |
-|-------------|------|---------|
-| `LINE_ACCESS_TOKEN` | LINE Messaging API Channel Access Token | 必填 |
-| `LINE_USER_ID_1` | 第 1 位接收者 LINE User ID（你自己） | 必填 |
-| `LINE_USER_ID_2` | 第 2 位接收者 LINE User ID | 選填 |
-| `LINE_USER_ID_3` | 第 3 位接收者 LINE User ID | 選填 |
-| `LINE_USER_ID_4` | 第 4 位接收者 LINE User ID | 選填 |
-| `SINOPAC_API_KEY` | 永豐金 Shioaji API Key | 必填 |
-| `SINOPAC_SECRET_KEY` | 永豐金 Shioaji Secret Key | 必填 |
-| `GOOGLE_CREDENTIALS` | Service Account JSON 憑證（整個 JSON 貼上） | 必填 |
-| `SPREADSHEET_ID` | Google Sheets ID | 必填 |
-| `FINMIND_TOKEN` | FinMind API Token（可提高 API 呼叫上限） | 選填 |
-
-> `LINE_USER_ID_2` ～ `4` 留空不設定，系統自動跳過，不會報錯。
-> 之後追加第 5 人：新增 `LINE_USER_ID_5` Secret，並在程式 `LINE_USER_IDS` 清單加一行。
+|------------|------|---------|
+| LINE_ACCESS_TOKEN | LINE Bot Channel Access Token | 必填 |
+| LINE_USER_ID_1 | 第 1 位接收者 LINE User ID | 必填 |
+| LINE_USER_ID_2 | 第 2 位接收者 LINE User ID | 選填 |
+| LINE_USER_ID_3 | 第 3 位接收者 LINE User ID | 選填 |
+| LINE_USER_ID_4 | 第 4 位接收者 LINE User ID | 選填 |
+| SINOPAC_API_KEY | 永豐金 API Key | 必填 |
+| SINOPAC_SECRET_KEY | 永豐金 Secret Key | 必填 |
+| GOOGLE_CREDENTIALS | Service Account JSON 憑證 | 必填 |
+| SPREADSHEET_ID | Google Sheets ID | 必填 |
+| FINMIND_TOKEN | FinMind API Token | 選填 |
 
 ---
 
-## 推播排程
+## 六、加權指數資料來源
+
+優先順序：
+1. **永豐金 Shioaji** — `api.Contracts.Indices.TSE["TAIEX"]`
+2. **TWSE 即時 API** — `mis.twse.com.tw`（盤中用 `z`，盤後用 `pz`）
+
+---
+
+## 七、配息資料來源
+
+從 TWSE API 自動抓取未來 180 天內的配息資料：
+`https://www.twse.com.tw/rwd/zh/exRight/TWT48U`
+
+有配息才顯示，無配息不顯示。
+
+---
+
+## 八、推播排程
 
 ```yaml
-cron: '0 6 * * 1-5'   # UTC 06:00 = 台灣時間 14:00，週一至週五
-```
-
-> 若要調整時間，修改 `news.yml` 的 cron 設定即可（GitHub Actions 使用 UTC 時區）。
-
----
-
-## 本地執行
-
-```bash
-# 安裝套件
-pip install -r requirements.txt
-
-# 設定環境變數後執行
-export LINE_ACCESS_TOKEN=xxx
-export LINE_USER_ID_1=xxx
-export SINOPAC_API_KEY=xxx
-export SINOPAC_SECRET_KEY=xxx
-export GOOGLE_CREDENTIALS='{ ... }'
-export SPREADSHEET_ID=xxx
-
-python news_tracker.py
+cron: '0 7 * * 1-5'   # UTC 07:00 = 台灣時間 15:00，週一至週五
 ```
 
 ---
 
-## 版本記錄
+## 九、變更紀錄
 
-| 版本 | 日期 | 說明 |
+| 日期 | 版本 | 說明 |
 |------|------|------|
-| v1.0 | 2026/05/25 | 初版，漲幅排行改為 Flex Message 深綠卡片，支援 4 人推播 |
+| 2026-05-29 | v1.0 | 初始完整版：大地棕×小貓白配色、加權指數大盤區塊、配息通知、推薦符號對齊 |
+
+---
+
+*建立者：Claude (Anthropic)　更新日期：2026/05/29*
