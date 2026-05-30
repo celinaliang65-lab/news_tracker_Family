@@ -22,6 +22,8 @@ LINE_USER_IDS = [
         os.environ.get('LINE_USER_ID_2', '').strip(),
         os.environ.get('LINE_USER_ID_3', '').strip(),
         os.environ.get('LINE_USER_ID_4', '').strip(),
+        os.environ.get('LINE_USER_ID_5', '').strip(),
+
     ] if uid
 ]
 SINOPAC_API_KEY = os.environ.get('SINOPAC_API_KEY', '').strip()
